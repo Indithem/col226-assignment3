@@ -1,16 +1,20 @@
 (*run `ocamllex test.mll && ocaml test.ml`*)
 {
 (* Header - definition for all types that will be used *)
-
+type custom_token= 
+| HELLO
+| HI
+| WHITESPACE
+| Error
 }
 
 let whitespace = [' ''\t']+
 
 rule main_rule = parse
-| whitespace {print_endline "whitespace"}
-| "hello" {print_endline "got an hello"}
-| "hi" {print_endline "got an hi"}
-| eof {print_endline "bye bye parsing!"}
+| whitespace {WHITESPACE}
+| "hello" {HELLO}
+| "hi" {print_endline "got an hi"; HI}
+| eof {Error}
 
 
 {
