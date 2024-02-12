@@ -1,7 +1,7 @@
 
 .PHONY: main
 main: main.ml
-	@ocaml $<
+	@cat test_cases.ay | ocaml $<
 
 .PHONY: test
 test: test.ml
