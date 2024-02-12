@@ -11,17 +11,23 @@ type custom_token=
 let whitespace = [' ''\t']+
 
 rule main_rule = parse
-| whitespace {WHITESPACE}
+| whitespace {main_rule lexbuf} (* <rule name> lexbuf to skip this token *)
 | "hello" {HELLO}
 | "hi" {print_endline "got an hi"; HI}
 | eof {Error}
+| _ {Error}
 
 
 {
-    let lexbuf = Lexing.from_channel stdin in
+    let lexbufr = Lexing.from_channel stdin in
     try
         while true do
-            main_rule lexbuf
+            match main_rule lexbufr with
+                    HELLO ->           print_endline "parsed an hello"
+                |   HI ->              print_endline "parsed an hi"
+                |   WHITESPACE->       print_endline "shouldn't've got this"
+                |   Error->            print_endline "error?!"
+            ;
         done;
     with _ ->
         print_endline "Parsing complete"
