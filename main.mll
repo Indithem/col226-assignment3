@@ -25,6 +25,9 @@ let whitespace = [' ''\t''\n']
 let ident_alphanumerics = ['A'-'Z' 'a'-'z' '0'-'9' ''' '_']
 let alphanumerics = ['A'-'Z' 'a'-'z' '0'-'9']
 
+let triple_quote = '"' '"' '"'
+let literal_without_triple_quote = [^'"' '"' '"']
+
 rule annay_lang_tokenizer = parse
 |   whitespace+      {annay_lang_tokenizer lexbuf} (*<rule name> lexbuf to skip this token *)
 |   "if-then-else"  {TERNARY_BRANCH}
@@ -33,10 +36,11 @@ rule annay_lang_tokenizer = parse
 |   "first"           {TUPLE_FIRST}
 |   "second"          {TUPLE_SECOND}
 
-|   '"' ([^'\n']+ as s) '"' whitespace {STRING s}
-| ''' ([^'\n']+ as s) ''' whitespace {STRING s}
+| '"' ([^'\n''"']+ as s) '"'   {STRING s}
+| ''' ([^'\n' ''']+ as s) '''  {STRING s}
+| triple_quote (literal_without_triple_quote+ as s) triple_quote {STRING s}
 | ['1'-'9']['0'-'9']* as i   {INT (int_of_string i)}
-| '0' as i                   {INT 0}
+| '0'                 {INT 0}
 
 | "if"             {IF}
 | "then"           {THEN}
@@ -54,10 +58,38 @@ rule annay_lang_tokenizer = parse
 | '|'whitespace* '|' {OR}
 | '/'whitespace* '\\' {NOT}
 | '^'whitespace* '^' {XOR}
-| '!'whitespace* '&' {NAND}
-| '!'whitespace* '|' {NOR}
+| '/'whitespace* '&' {NAND}
+| '/'whitespace* '|' {NOR}
 
-| ':'whitespace* '=' {ASSIGNMENT}
+| '+'               {ADD}
+| '-'               {SUB}
+| '*'               {MUL}
+| '/'               {DIV}
+| '%'               {MOD}
+| '^'               {POW}
+
+| '>'               {GT}
+| '<'               {LT}
+| '='whitespace* '?'{EQ}
+| '>'whitespace* '='{GTE}
+| '<'whitespace* '='{LTE}
+| '/'whitespace* '='{NE}
+
+| '@'               {STRING_CONCAT}
+| '('whitespace*'='whitespace*'?' {STRING_CONTAINS}
+
+| ','               {COMMA}
+| '.'               {PERIOD}
+| '?'               {QUESTION_MARK}
+
+| '('               {PARENTHESIS_OPEN}
+| ')'               {PARENTHESIS_CLOSE}
+| '['               {SQU_PARANTHESIS_OPEN}
+| ']'               {SQU_PARANTHESIS_CLOSE}
+| '{'               {FL_PARANTHESIS_OPEN}
+| '}'               {FL_PARANTHESIS_CLOSE}
+
+| ':'whitespace* '='{ASSIGNMENT}
 | ';'               {SEMICOLON}
 
 |   '+'             {ADD}
@@ -108,11 +140,36 @@ rule annay_lang_tokenizer = parse
             | ASSIGNMENT -> print_endline "assignment operator"
             | SEMICOLON -> print_endline "semicolon"
 
-
             | BOOL_TRUE -> print_endline "boolean constant true"
             | BOOL_FALSE -> print_endline "boolean constant false"
 
+            | ADD -> print_endline "integer addition operator"
+            | SUB -> print_endline "integer subtraction operator"
+            | MUL -> print_endline "integer multiplication operator"
+            | DIV -> print_endline "integer division operator"
+            | MOD -> print_endline "integer modulo operator"
+            | POW -> print_endline "integer power operator"
 
+            | GT -> print_endline "integer greater than comparision operator"
+            | LT -> print_endline "integer less than comparision operator"
+            | EQ -> print_endline "integer equality comparision operator"
+            | GTE -> print_endline "integer greater than or equal to comparision operator"
+            | LTE -> print_endline "integer less than or equal to comparision operator"
+            | NE -> print_endline "integer not equal to comparision operator"
+
+            | STRING_CONCAT -> print_endline "string concatenation operator"
+            | STRING_CONTAINS -> print_endline "string contains operator"
+
+            | COMMA -> print_endline "comma"
+            | PERIOD -> print_endline "period"
+            | QUESTION_MARK -> print_endline "question mark"
+
+            | PARENTHESIS_OPEN -> print_endline "parenthesis open"
+            | PARENTHESIS_CLOSE -> print_endline "parenthesis close"
+            | SQU_PARANTHESIS_OPEN -> print_endline "square parenthesis open"
+            | SQU_PARANTHESIS_CLOSE -> print_endline "square parenthesis close"
+            | FL_PARANTHESIS_OPEN -> print_endline "flower parenthesis open"
+            | FL_PARANTHESIS_CLOSE -> print_endline "flower parenthesis close"
 
             | ERROR e -> print_endline ("invalid token : " ^ e)
             | EOF ->  cond:= false
@@ -121,3 +178,47 @@ rule annay_lang_tokenizer = parse
     print_endline "Done Lexing!"
 
 }
+
+
+(*test_cases1.ay
+"hello"
+'hi'
+'h'
+
+let m :=tuple h1 h3
+fisrt m    first m
+second m
+
+let x := true;
+
+true && false
+true /        \ false
+if true then 00003211 else 2 ;
+else 2;
+
+firstme
+tuple;me
+
+19990
+
+*)
+
+(*test_cases2.ay
+1abc
+
+24;Aabc;ABC123;abc'sad'213'ff
+
+123&        &23 gs34 
+"&&" '"a"'
+
+"""
+'hello'
+guys
+"""
+*)
+
+(*test_cases3.ay
+({[abc++123p^"hello"]})
+
+pa''sd < == ? 123
+*)

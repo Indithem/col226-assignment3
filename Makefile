@@ -6,6 +6,8 @@ main: main.ml
 	@echo "-----------------test_cases1 done------------------------"
 	@cat test_cases2.ay | ocaml $<
 	@echo "-----------------test_cases2 done------------------------"
+	@cat test_cases3.ay | ocaml $<
+	@echo "-----------------test_cases3 done------------------------"
 
 .PHONY: test
 test: test.ml
